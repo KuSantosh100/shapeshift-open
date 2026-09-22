@@ -5,7 +5,7 @@
 <p align="center">
   <img src="docs/demo.gif" alt="Typing 'dinner with priya friday 8pm on zoom' morphs the text box into an event card, then a shopping checklist" width="820">
   <br>
-  <sub><a href="https://shapeshift-sooty.vercel.app"><b>Try it live</b></a> · <a href="docs/demo.mp4">Watch the full 60-second demo (1080p60)</a></sub>
+  <sub><a href="https://shapeshiftui.vercel.app"><b>Try it live</b></a> · <a href="docs/demo.mp4">Watch the full 60-second demo (1080p60)</a></sub>
 </p>
 
 ```
