@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shapeshift
 
-## Getting Started
+**An input that becomes what you mean.** One text box that morphs into the right UI as you type — an event card, a checklist, a timer, a color picker, a bill splitter, a poll, a converter and more.
 
-First, run the development server:
+<p align="center">
+  <img src="docs/demo.gif" alt="Typing 'dinner with priya friday 8pm on zoom' morphs the text box into an event card, then a shopping checklist" width="820">
+  <br>
+  <sub><a href="docs/demo.mp4">Watch the full 60-second demo (1080p60)</a></sub>
+</p>
+
+```
+dinner with priya friday 8pm on zoom   →  Event card · Friday · 8 PM · Priya · Video call
+buy milk, eggs, bread and coffee       →  Shopping checklist
+split 2400 between 3                   →  ₹800 each
+minecraft diamond                      →  #4AEDD9
+```
+
+Intent is classified by [TypeSafe AI](https://typesafe.ai)'s **Jev** model: one call answers 14 typed questions in parallel (which card, plus signals like "is it a video call?", "is it urgent?"). Everything else — dates, amounts, units, math — is deterministic code. **Jev decides, code computes.**
+
+<p align="center"><img src="docs/diagrams/jev-fanout.svg" alt="One Jev call answers 14 questions in parallel; a deterministic parser reads the same text for values" width="820"></p>
+
+It works **fully offline by default** with a built-in keyword classifier, so you can run it without an account.
+
+## Quick start
+
+Requires [Bun](https://bun.sh) 1.2+.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and start typing. Press <kbd>/</kbd> to see every card type.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Use the online Jev model (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local
+# then set TYPESAFE_API_KEY=... (get one at https://console.typesafe.ai/keys)
+```
 
-## Learn More
+Restart `bun dev`. The latency readout in the bottom-right corner switches from `jev-offline` to `jev-1.13.0`. The key is only ever read on the server (`/api/intent`); it never reaches the browser. If the API is unreachable or rate-limited, Shapeshift quietly falls back to offline mode.
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `TYPESAFE_API_KEY` | _(empty)_ | Enables the online model. Empty or placeholder values keep you offline. |
+| `JEV_MODEL` | `jev-1.13.0` | Pinned model version. |
+| `NEXT_PUBLIC_USE_MOCK` | `false` | `true` forces offline even with a key. |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Used for Open Graph metadata. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Card types
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Card | Try |
+| --- | --- |
+| Event | `lunch with rahul and anna tomorrow` |
+| Reminder | `remind me to pay rent tomorrow urgent` |
+| Checklist | `buy milk, eggs, bread and coffee` |
+| Timer | `25 min focus` |
+| Habit | `gym 3x a week` |
+| Color | `#ff6b35`, `tiffany blue`, `minecraft diamond` |
+| Split | `split 2400 between 3` |
+| Expense | `spent 450 on uber` |
+| Convert | `5 miles in km`, `72f to c` |
+| Calculate | `18% of 3450` |
+| Trip | `flight to goa next weekend` |
+| Poll | `pizza or burgers for friday?` |
+| Contact | `rahul 98200 12345 rahul@mail.com` |
+| Bookmark | `https://vercel.com/blog check later` |
+| Countdown | `days until christmas` |
+| Time zone | `3pm pst in ist`, `what time is it in tokyo` |
+| Random | `roll 2d6`, `flip a coin`, `pick one: tacos, sushi or pizza` |
+| Goal | `read 12 books this year, 4 done` |
+| Note | anything else |
 
-## Deploy on Vercel
+Saved cards live in your browser (`localStorage`) until you delete them. Click one to edit it.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Keyboard
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Key | Action |
+| --- | --- |
+| <kbd>Enter</kbd> | Save the card |
+| <kbd>Esc</kbd> | Clear (or cancel an edit) |
+| <kbd>Tab</kbd> | Keep a faint preview |
+| <kbd>←</kbd> <kbd>→</kbd> | Choose between "Did you mean" chips |
+| <kbd>/</kbd> | Open every card type |
+
+URL flags: `?debug=1` shows every probability; `?demo=1&loop=1` plays a scripted demo.
+
+## How it works
+
+<p align="center"><img src="docs/diagrams/architecture.svg" alt="Keystroke, debounced hook, server route, Jev or offline classifier, decide, gate signals, parse, card" width="820"></p>
+
+Raw model output flickers as you type, so a small state machine turns confidence into calm UI states. A card only changes when a challenger wins twice in a row (or is very sure), and signal badges use an on/off hysteresis band.
+
+<p align="center"><img src="docs/diagrams/states.svg" alt="States: input, ghost preview, choose between two chips, committed card, with the thresholds between them" width="820"></p>
+
+The diagrams are Excalidraw files — open any `docs/diagrams/*.excalidraw` at [excalidraw.com](https://excalidraw.com) to edit them.
+
+| Path | What lives there |
+| --- | --- |
+| `src/components/intents/registry.ts` | **The extension point.** One entry per card type. |
+| `src/lib/jev/questions.ts` | The Jev question schema |
+| `src/lib/jev/mock.ts` | Offline keyword classifier (same output shape) |
+| `src/lib/parse/` | One deterministic parser per card type |
+| `src/lib/decide.ts`, `src/lib/signals.ts` | The calm-UI state machine |
+| `src/components/shapeshift/` | Shell, chips, palette, saved list, HUD |
+
+### Adding a card type
+
+1. Add the key to `INTENT_KEYS` in `src/lib/jev/types.ts`.
+2. Add a non-overlapping criterion to `intent` in `src/lib/jev/questions.ts`.
+3. Write a parser in `src/lib/parse/` and register it in `src/lib/parse/index.ts`.
+4. Write a card component in `src/components/intents/` and add a registry entry.
+5. Teach the offline classifier in `src/lib/jev/mock.ts`, and add tests.
+
+TypeScript will point at anything you missed.
+
+## Development
+
+```bash
+bun run check    # typecheck + lint + tests
+bun test         # parser, decision, signal and classifier tests
+bun run build
+```
+
+Stack: Next.js (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 · shadcn/ui · Motion · chrono-node · zod.
+
+## License
+
+[MIT](LICENSE)
