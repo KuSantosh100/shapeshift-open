@@ -11,7 +11,11 @@ export const metadata: Metadata = {
   title: "Shapeshift — an input that becomes what you mean",
   description:
     "One text box that morphs into the right UI as you type: events, checklists, timers, colors, bill splits and more. Powered by TypeSafe AI's Jev.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  // Absolute URLs for the Open Graph image: explicit site URL, else Vercel's production domain.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
+  ),
   openGraph: {
     title: "Shapeshift",
     description: "An input that becomes what you mean.",
