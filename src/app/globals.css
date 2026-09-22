@@ -1,26 +1,207 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /*
+   * One concentric radius scale: each step is the one outside it minus the padding between.
+   * shell 28 → rows/panels 20 (8px inset) → items 16 (4px inset) → tiles 12 → cells 8.
+   * Buttons, chips, badges and avatars are pills (rounded-full).
+   */
+  --radius-sm: 8px;   /* cells: shade squares, small tiles, kbd */
+  --radius-md: 12px;  /* tiles and controls: icon tiles, swatch, inputs */
+  --radius-lg: 16px;  /* items inside a panel */
+  --radius-xl: 20px;  /* panels: popover, select, dialog, toast; rows in the saved list */
+  --radius-2xl: 28px; /* shells */
+  --radius-3xl: 28px;
+  --radius-4xl: 9999px;
+
+  /* Shapeshift extras */
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-ink-2: var(--ink-2);
+  --color-line-strong: var(--line-strong);
+  --color-positive: var(--positive);
+  --color-caution: var(--caution);
+  --color-caution-text: var(--caution-text);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-mono: var(--font-geist-mono), ui-monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --radius-shell: var(--radius-2xl);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.75rem;
+
+  --background: #fafaf9;
+  --foreground: #1a1a19;
+  --card: #ffffff;
+  --card-foreground: #1a1a19;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a19;
+
+  --primary: #1a1a19;
+  --primary-foreground: #fafaf9;
+  --secondary: #f4f4f2;
+  --secondary-foreground: #1a1a19;
+  --muted: #f4f4f2;
+  --muted-foreground: #706e68; /* was #8f8d86 (3.0–3.3:1); now ≥4.6:1 on card, page and secondary */
+  --accent: #eef1fd;
+  --accent-foreground: #3b5bdb;
+  --destructive: #e03131;
+
+  --border: #e8e7e4;
+  --input: #e8e7e4;
+  --ring: #3b5bdb;
+
+  --brand: #3b5bdb;
+  --brand-soft: #eef1fd;
+  --ink-2: #57564f;
+  --line-strong: #d6d4cf;
+  --positive: #2f9e44;
+  --caution: #e8590c;
+  --caution-text: #bb4c19; /* caution hue at text contrast: 4.6:1 on the caution tint */
+  --swatch-outline: rgb(26 26 25 / 0.06);
+
+  --shadow-rest: 0 1px 2px rgb(26 26 25 / 0.04), 0 1px 1px rgb(26 26 25 / 0.03);
+  --shadow-lift: 0 1px 2px rgb(26 26 25 / 0.04), 0 8px 24px -6px rgb(26 26 25 / 0.08);
+  --shadow-float: 0 2px 4px rgb(26 26 25 / 0.04), 0 20px 48px -12px rgb(26 26 25 / 0.14);
+
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* mobile-native: no gray tap flash (every tappable has its own :active), no pull-to-refresh */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  /* mobile-native: fire click on tap without the double-tap-zoom wait */
+  button,
+  a,
+  [role="button"],
+  label {
+    touch-action: manipulation;
+  }
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--brand);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Floating panels share one radius and shadow */
+  [data-slot="popover-content"],
+  [data-slot="select-content"] {
+    box-shadow: var(--shadow-float);
+  }
+  /* Buttons respond to press */
+  [data-slot="button"]:not(:disabled):active {
+    scale: 0.96;
+  }
+  [data-slot="button"] {
+    transition-property: color, background-color, border-color, scale, translate, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+  /* One verified focus indicator for every shadcn control: brand at 5.7:1 on card and page */
+  [data-slot]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* Icon stroke matched to the 450–550 text weights it sits beside */
+  svg.lucide {
+    stroke-width: 1.75;
+  }
+}
+
+/* Reduced motion: shadcn's tw-animate enters/exits keep their fade but lose zoom and slide. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot] {
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+  }
+  [data-slot="button"]:not(:disabled):active {
+    scale: 1;
+  }
+}
+
+/*
+ * Radius system applied to shadcn parts through their data-slot hooks (unlayered, so it
+ * wins over the generated utilities without forking the components).
+ */
+[data-slot="popover-content"],
+[data-slot="select-content"] {
+  border-radius: var(--radius-xl);
+}
+[data-slot="select-item"],
+[data-slot="command-item"] {
+  border-radius: var(--radius-lg);
+}
+[data-slot="button"] {
+  border-radius: 9999px;
+}
+
+/* improve-animations: shadcn ships `transition-all`; name only what changes. */
+[data-slot="badge"] {
+  transition-property: color, background-color, border-color;
+}
+[data-slot="progress-indicator"] {
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+}
+
+/* Toasts read as draggable: they follow the pointer and fly off past 45px (Sonner). */
+[data-sonner-toast] {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+[data-sonner-toast][data-swiping="true"] {
+  cursor: grabbing;
+}
+
+body.demo-idle,
+body.demo-idle * {
+  cursor: none !important;
 }
