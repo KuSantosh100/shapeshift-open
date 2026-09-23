@@ -61,6 +61,7 @@ Restart `bun dev`. The latency readout in the bottom-right corner switches from 
 | Split | `split 2400 between 3` |
 | Expense | `spent 450 on uber` |
 | Convert | `5 miles in km`, `72f to c` |
+| Currency | `100 usd to inr`, `convert 200 euros to pounds` |
 | Calculate | `18% of 3450` |
 | Trip | `flight to goa next weekend` |
 | Poll | `pizza or burgers for friday?` |
@@ -102,6 +103,7 @@ The diagrams are Excalidraw files — open any `docs/diagrams/*.excalidraw` at [
 | `src/lib/jev/questions.ts` | The Jev question schema |
 | `src/lib/jev/mock.ts` | Offline keyword classifier (same output shape) |
 | `src/lib/parse/` | One deterministic parser per card type |
+| `src/app/api/rates/route.ts` | Live currency exchange rates for the Currency card (server-side fetch, 1h cache) |
 | `src/lib/decide.ts`, `src/lib/signals.ts` | The calm-UI state machine |
 | `src/components/shapeshift/` | Shell, chips, palette, saved list, HUD |
 
