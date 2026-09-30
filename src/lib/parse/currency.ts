@@ -4,7 +4,6 @@ export type CurrencyData = {
   to: string | null;
 };
 
-/** Symbols are normalized to their code word before the alias pattern runs. */
 const SYMBOL_TO_WORD: Record<string, string> = {
   "$": " usd ",
   "€": " eur ",
@@ -14,7 +13,6 @@ const SYMBOL_TO_WORD: Record<string, string> = {
   "₩": " krw ",
 };
 
-/** Aliases → ISO 4217 codes. */
 export const CURRENCY_ALIASES: Record<string, string> = {
   usd: "USD", "us dollar": "USD", "us dollars": "USD", dollar: "USD", dollars: "USD", buck: "USD", bucks: "USD",
   eur: "EUR", euro: "EUR", euros: "EUR",
@@ -43,7 +41,6 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   CHF: "CHF ", SGD: "S$", AED: "AED ", KRW: "₩", NZD: "NZ$", ZAR: "R",
 };
 
-/** Codes offered in the from/to pickers, most-common first. */
 export const CURRENCY_CODES = ["USD", "INR", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SGD", "AED", "KRW", "NZD", "ZAR"];
 
 const DEFAULT_TARGET: Record<string, string> = Object.fromEntries(CURRENCY_CODES.map((c) => [c, c === "INR" ? "USD" : "INR"]));
@@ -52,7 +49,6 @@ const CODE_PATTERN = Object.keys(CURRENCY_ALIASES)
   .sort((a, b) => b.length - a.length)
   .join("|");
 
-/** Every currency mention in the text, in reading order — not just ones glued to the number. */
 const CODE_RE = new RegExp(`\\b(${CODE_PATTERN})\\b`, "gi");
 const AMOUNT_RE = /-?\d[\d,]*(?:\.\d+)?/;
 
@@ -64,12 +60,6 @@ function toNumber(raw: string) {
   return Number(raw.replace(/,/g, ""));
 }
 
-/**
- * Reads the amount and every currency mentioned anywhere in the text, in the order they
- * appear. This is deliberately loose about grammar in between — "100 indian rupee to US
- * dollars" and "100 rupees in dollars" both resolve the same way — since the words that
- * matter are the number and the two currencies, not the sentence around them.
- */
 export function parseCurrency(text: string): CurrencyData {
   const t = normalize(text);
   const amount = t.match(AMOUNT_RE);
