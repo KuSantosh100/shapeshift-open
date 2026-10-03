@@ -103,7 +103,6 @@ The diagrams are Excalidraw files — open any `docs/diagrams/*.excalidraw` at [
 | `src/lib/jev/questions.ts` | The Jev question schema |
 | `src/lib/jev/mock.ts` | Offline keyword classifier (same output shape) |
 | `src/lib/parse/` | One deterministic parser per card type |
-| `src/app/api/rates/route.ts` | Live currency exchange rates for the Currency card (server-side fetch, 1h cache) |
 | `src/lib/decide.ts`, `src/lib/signals.ts` | The calm-UI state machine |
 | `src/components/shapeshift/` | Shell, chips, palette, saved list, HUD |
 
