@@ -26,7 +26,7 @@ function useLiveRate(from: string, to: string, enabled: boolean): Rate {
   useEffect(() => {
     if (!active) return;
     const ctrl = new AbortController();
-    fetch(`/api/rates?base=${from}`, { signal: ctrl.signal })
+    fetch(`https://api.frankfurter.dev/v1/latest?base=${from}`, { signal: ctrl.signal })
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((data: { rates?: Record<string, number> }) => {
         const value = data.rates?.[to];
